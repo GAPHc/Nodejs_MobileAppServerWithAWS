@@ -1,0 +1,23 @@
+<canvas id="ctx" width="500" height="500" style="border:1px solid #000000;"></canvas>
+
+<script 
+	src = " https://cdn.socket.io/socket.io-1.4.5.js"
+></script>
+
+<script>
+	var ctx = document.getElementById("ctx").getContext("2d");
+	ctx.font = '30px Arial';
+	ctx.fillText('P',100,100);
+	
+	var socket = io();
+	
+	socket.on('newPositions',function(data){
+        ctx.clearRect(0,0,500,500);
+        for(var i = 0 ; i < data.length; i++)
+		{
+			//console.log('id : '+ data[i].id);
+            ctx.fillText(data[i].FacebookId,10,data[i].Ypos+75);      
+			ctx.fillText(data[i].MaxScore,400,data[i].Ypos+75);
+		}
+    });
+</script>
