@@ -49,8 +49,10 @@ var params =
 
 docClient.scan(params,onScan);
 
+//스캔된 정보 리스트로 가져오기
 var SCAN_LIST = {};
 
+//스캔한 정보들
 SCAN_INFO = function(FacebookId,MaxLevel,MaxScore,UserName)
 {
 	this.FacebookId = FacebookId;
@@ -60,15 +62,19 @@ SCAN_INFO = function(FacebookId,MaxLevel,MaxScore,UserName)
 	this.Ypos;
 }
 
+//스캔
 function onScan(err,data)
 {
+	//문제 발생시 중단
 	if(err)
-		console.err("unable");
+		console.err("Unable to scan");
 	else
 	{
+		//리스트 초기화
 		SCAN_LIST = new Array();
 		var order = 0;
 		
+		//DynamoDB에서 정보 받아 위 스캔인포에 따라서 정보를 넣어주기
 		for(var i = 0 , len = data.Items.length ; i< len ;i++)
 		{
 			var scan = new SCAN_INFO(data.Items[i].FacebookId, data.Items[i].MaxLevel, data.Items[i].MaxScore, data.Items[i].UserName)
@@ -76,8 +82,10 @@ function onScan(err,data)
 			order++;
 		}
 		
+		//스캔 정보 배열
 		ScanListArray();
 		
+		//배열된 정보를 y값을 수정해 다시 저장해주기
 		for(var i = 0, len = SCAN_LIST.length; i < len ; i++)
 		{
 			var scan = SCAN_LIST[i];
@@ -111,11 +119,15 @@ function ScanListArray()
 	}
 }
 
+//소켓통신 사용자 정보 리스트
 var SOCKET_LIST = {};
 
+
+//새로운 시간 정보 DynamoDB에 저장
 var AddNewItem = function(data)
 {
 	var user_TimeInfo;
+	//params 정보
 	user_TimeInfo = 
 	{
 		TableName : "GameMakeTaskTimeTable",
@@ -129,19 +141,22 @@ var AddNewItem = function(data)
 		}
 	}
 	
+	//데이터 넣어주기
 	docClient.put(user_TimeInfo, function(err,data)
 	{
 		if (err) {
-		console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+		console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
 		} else {
 			console.log("added item:", JSON.stringify(data, null, 2));
 		}
 	});
 }
 
+//새로운 시간 정보 DynamoDB에 업데이트
 var UpdateExistItem = function(data)
 {
 	var user_TimeInfo;
+	//params 정보
 	user_TimeInfo = 
 	{
 		TableName : "GameMakeTaskTimeTable",
@@ -158,6 +173,7 @@ var UpdateExistItem = function(data)
 		}
 	}
 	
+	//첫 게임 플레이 시간을 제외한 정보들 업데이트
 	docClient.update(user_TimeInfo, function(err,data)
 	{
 		if (err) {
@@ -173,6 +189,8 @@ var io = require('socket.io') (serv,{});
 io.sockets.on('connection', function(socket) 
 {
 	console.log('connected with client');
+
+	//Rank 소켓 통신 API
 	socket.on('Rank',function()
 	{
 		console.log('ready to send rank');
@@ -185,10 +203,12 @@ io.sockets.on('connection', function(socket)
 		console.log('success send');
 	});
 	
-	var user_TimeInfo;
+	//TimeSave 소켓 통신 API
 	socket.on('TimeSave',
 		function(data)
 		{
+			var user_TimeInfo;
+
 			user_TimeInfo = 
 			{
 				TableName : "GameMakeTaskTimeTable",
@@ -220,10 +240,13 @@ io.sockets.on('connection', function(socket)
 		}
 	);
 	
+	//클라이언트에 아이디 부과
 	socket.id = Math.random();
 	socket.number = "" + Math.floor(10 * Math.random());
+	//리스트에 넣어주기
 	SOCKET_LIST[socket.id] = socket;
 	
+	//disconnect 소켓 통신 API
 	socket.on('disconnect',function(){
         delete SOCKET_LIST[socket.id];
     });
