@@ -254,7 +254,7 @@ io.sockets.on('connection', function(socket)
 });
 
 //클라이언트에 정보 띄워주기
-/*setInterval(function(){
+setInterval(function(){
 
     for(var i in SOCKET_LIST){
         var socket = SOCKET_LIST[i];
@@ -262,7 +262,7 @@ io.sockets.on('connection', function(socket)
     }
 	
 },1000/25);
-*/
+
 
 //정보 갱신
 setInterval(function()
